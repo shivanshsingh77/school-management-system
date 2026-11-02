@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const asyncHandler = require("../utils/asyncHandler");
 const User = require("../models/User");
+const resolveUserProfile = require("../utils/resolveProfile");
 
 const protect = asyncHandler(async (req, res, next) => {
   let token;
@@ -24,6 +25,13 @@ const protect = asyncHandler(async (req, res, next) => {
   if (!user || !user.isActive) {
     res.status(401);
     throw new Error("Not authorized, user no longer exists or is deactivated");
+  }
+
+  const profile = await resolveUserProfile(user);
+  if (user.role === "teacher") {
+    req.teacher = profile;
+  } else if (user.role === "student") {
+    req.student = profile;
   }
 
   req.user = user;

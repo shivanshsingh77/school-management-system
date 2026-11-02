@@ -1,161 +1,240 @@
-# School Management System (MERN Stack, Offline)
+# EduManage — School Management System (MERN Stack ERP)
 
-A fully offline School Management System built with MongoDB, Express, React, and Node.js.
-Everything runs on your local machine — no cloud database, no external APIs.
+A modern, full-stack School Management & ERP system built with MongoDB, Express.js, React 18, and Node.js.
+
+Features an enterprise-grade School ERP user interface designed with a crisp light aesthetic, professional blue theme (`#1d4ed8`), warm orange accents (`#ea580c`), and role-based workspaces for **Administrators**, **Teachers**, and **Students**.
+
+---
 
 ## Tech Stack
 
-- **Frontend:** React 18 + Vite + React Router + Axios + lucide-react icons
-- **Backend:** Node.js + Express.js + REST API
-- **Database:** MongoDB (local) + Mongoose
-- **Auth:** JWT + bcrypt password hashing, role-based access control (admin/teacher/student)
+- **Frontend:** React 18 + Vite + React Router v6 + Axios + Lucide React Icons
+- **Backend:** Node.js + Express 4 REST API
+- **Database:** MongoDB Community Server / MongoDB Atlas + Mongoose 8
+- **Authentication:** JWT (JSON Web Tokens) + Bcryptjs Password Hashing
+- **Security:** Strict Role-Based Access Control (RBAC), Server-Side Scoping, IDOR Protection, Sanitized Auth Payloads
+
+---
 
 ## Architecture
 
 ```
-Browser
-  |
-React Frontend (http://localhost:5173)
-  |
-Node.js + Express REST API (http://localhost:5000)
-  |
-Local MongoDB (mongodb://127.0.0.1:27017/school_management)
+                       ┌───────────────────────────────┐
+                       │     Browser Client (SPA)      │
+                       │    Vite React (Port 5173)     │
+                       └───────────────┬───────────────┘
+                                       │ HTTP / REST API (JWT Bearer)
+                                       ▼
+                       ┌───────────────────────────────┐
+                       │    Node.js + Express API      │
+                       │          (Port 5000)          │
+                       └───────────────┬───────────────┘
+                                       │ Mongoose ODM
+                                       ▼
+                       ┌───────────────────────────────┐
+                       │       MongoDB Database        │
+                       │ (school_management / Atlas)   │
+                       └───────────────────────────────┘
 ```
 
-## Features
+---
 
-- **Auth:** Login, JWT sessions, role-based dashboards and route protection
-- **Admin Dashboard:** Live stats (total students, teachers, classes, pending fees, today's attendance)
-- **Students:** Full CRUD, search, class assignment, validation
-- **Teachers:** Full CRUD, search
-- **Classes & Subjects:** Create/manage classes, assign subjects and teachers
-- **Attendance:** Mark present/absent per class/date (duplicate-proof), view history
-- **Fees:** Create fee records, record payments, auto-calculated pending/paid amounts
-- **Exams & Marks:** Create exams, enter/update marks, auto-calculated percentage and grade (A+ to F)
-- **Reports:** Student, teacher, attendance, fee, and result reports with print support
-- **Users:** Admin can create/activate/deactivate login accounts for teachers and students
+## Role-Based Workspaces & Features
 
-## Prerequisites
+### 1. Admin Workspace
+- **Dashboard:** Real-time KPI statistics (Total Students, Teachers, Classes, Pending Fees, Today's Attendance count).
+- **Students Management:** Complete student directory, roll numbers, class assignment, parent details, debounced search, modal forms.
+- **Teachers Management:** Complete faculty records, subject specializations, qualifications, contact info.
+- **Classes & Subjects:** Create and manage classes, assign class teachers, create subjects with unique subject codes.
+- **Attendance Module:** Interactive daily attendance marking with Present/Absent status pills; full historical log by date/class.
+- **Fee Management:** Assign tuition fees, record installment payments with instant validation, track paid and pending balances.
+- **Examinations:** Schedule exams with exam dates, subjects, classes, and maximum marks.
+- **Marks & Results:** Grade entry with automated percentage and letter grade calculation (`A+`, `A`, `B`, `C`, `D`, `F`).
+- **Reports:** Tabular reports for Students, Faculty, Attendance, Fees, and Exam Results with dedicated print stylesheets.
+- **User Management:** Create login credentials with safe profile linkage to existing Teacher or Student records; toggle account activation status.
 
-- [Node.js](https://nodejs.org/) 18+ and npm
-- [MongoDB Community Server](https://www.mongodb.com/try/download/community) installed and running locally
+### 2. Teacher Workspace
+- **Overview & Statistics:** Total assigned classes, enrolled students count, assigned subjects, and today's attendance summary.
+- **My Classes:** View only classes where the teacher is designated as Class Teacher or Subject Teacher, with enrolled student counters.
+- **My Students:** Student directory strictly scoped to the teacher's authorized classes.
+- **Attendance Marking & History:** Select authorized class and date, mark daily attendance using interactive pills, and view past attendance logs.
+- **Marks Entry:** Grade students on scheduled exams for authorized classes with strict bounds checking against `maxMarks`.
+- **Exam Schedule:** View scheduled examination dates and subjects for assigned classes.
+- **Faculty Profile:** View personal teaching credentials, qualifications, contact information, and class assignments.
 
-### Starting local MongoDB
+### 3. Student Workspace
+- **Overview Dashboard:** Personal summary cards, overall attendance percentage, pending tuition balance, academic performance, and overall grade.
+- **Personal Profile:** Comprehensive enrollment record including roll number, class, assigned class teacher, date of birth, parent details, phone, and address.
+- **Attendance Record:** Real-time attendance rate, days present, days absent, total sessions, and full date-by-date attendance history.
+- **Fees & Dues:** Breakdown of total tuition fees, total paid, pending balance, and detailed payment installment receipts.
+- **Marks & Results:** Detailed subject-wise examination scores, maximum marks, percentages, and letter grade badges.
+- **Exam Schedule:** Upcoming exam schedule for the student's enrolled class.
 
-- **Windows:** Usually runs as a service automatically. If not: `net start MongoDB` (elevated Command Prompt).
-- **macOS (Homebrew):** `brew services start mongodb-community`
-- **Linux:** `sudo systemctl start mongod`
-
-Verify: running `mongosh` in a terminal should connect without errors.
+---
 
 ## Project Structure
 
 ```
 school-management-system/
-├── client/          React frontend (Vite)
-│   └── src/
-│       ├── components/   Reusable UI: Modal, ConfirmDialog, Sidebar, StatCard, forms
-│       ├── context/       AuthContext, NotificationContext
-│       ├── layouts/       AdminLayout (sidebar + content shell)
-│       ├── pages/          Login, role dashboards
-│       │   └── admin/      Students, Teachers, Classes, Subjects, Attendance,
-│       │                   Fees, Exams, Results, Reports, Users
-│       └── services/       Axios API client
-├── server/          Express backend (REST API)
-│   ├── config/       MongoDB connection
-│   ├── controllers/  Business logic per module
-│   ├── middleware/    Auth (JWT) + error handling
-│   ├── models/         Mongoose schemas
-│   ├── routes/         Express routers
-│   ├── seed/            Demo data seed script
-│   └── utils/           Helpers (async handler, token generator)
+├── client/                     # Frontend (React 18 + Vite)
+│   ├── src/
+│   │   ├── components/         # Reusable UI: Sidebar, Modal, ConfirmDialog, StatCard, Forms
+│   │   ├── context/            # AuthContext (JWT session), NotificationContext (Toasts)
+│   │   ├── layouts/            # AdminLayout (shared navigation shell)
+│   │   ├── pages/              # Login, TeacherDashboard, StudentDashboard, Unauthorized
+│   │   │   └── admin/          # Dashboard, Students, Teachers, Classes, Subjects, Attendance,
+│   │   │                       # Fees, Exams, Results, Reports, Users
+│   │   ├── services/           # Axios instance with auth interceptor
+│   │   └── index.css           # Enterprise ERP design system stylesheet
+│   ├── .env.example
+│   ├── package.json
+│   └── vite.config.js
+├── server/                     # Backend REST API (Node.js + Express)
+│   ├── config/                 # MongoDB connection (connectDB)
+│   ├── controllers/            # Business logic (Admin, Teacher Portal, Student Portal, Auth, etc.)
+│   ├── middleware/             # Auth middleware (protect, authorize), error handlers
+│   ├── models/                 # Mongoose schemas (User, Student, Teacher, Class, Subject,
+│   │                           #                   Attendance, Fee, Exam, Mark)
+│   ├── routes/                 # Express route definitions
+│   ├── seed/                   # Database seed script for initial testing
+│   ├── utils/                  # resolveProfile, generateToken, asyncHandler
+│   ├── .env.example
+│   ├── package.json
+│   └── server.js
 ├── screenshots/
 ├── .gitignore
 └── README.md
 ```
 
-## Setup
+---
 
-### 1. Backend
+## Quick Start & Local Setup
 
+### 1. Prerequisites
+- **Node.js** (v18 or higher)
+- **MongoDB** running locally on port 27017 or a MongoDB Atlas connection URI
+
+### 2. Backend Setup
 ```bash
 cd server
 npm install
-copy .env.example .env      # Windows
-# cp .env.example .env      # macOS/Linux
-npm run seed                # creates demo admin/teacher/student + sample data
+
+# Copy environment template
+cp .env.example .env    # On Windows: copy .env.example .env
+
+# (Optional) Seed demo data if database is empty:
+# npm run seed
+
+# Start development server
 npm run dev
 ```
+Backend API will be running on **http://localhost:5000**.  
+Verify health check at **http://localhost:5000/api/health**.
 
-API runs on **http://localhost:5000**. Check **http://localhost:5000/api/health** for a JSON success message.
-
-### 2. Frontend
-
+### 3. Frontend Setup
 ```bash
 cd client
 npm install
+
+# Copy environment template
+cp .env.example .env    # On Windows: copy .env.example .env
+
+# Start Vite dev server
 npm run dev
 ```
+Frontend application will be accessible at **http://localhost:5173**.
 
-App runs on **http://localhost:5173**.
+---
 
-## Demo Credentials
+## API Endpoints Reference
 
-After running `npm run seed`:
+### Public / Authentication
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `GET` | `/api/health` | Public | System status and timestamp |
+| `POST` | `/api/auth/login` | Public | Authenticates credentials, returns signed JWT & user profile |
+| `GET` | `/api/auth/me` | Authenticated | Validates token and returns current user identity & linked profile |
 
-| Role    | Username      | Password     |
-|---------|---------------|--------------|
-| Admin   | admin         | Admin@123    |
-| Teacher | rahul.sharma  | Teacher@123  |
-| Student | aarav.patel   | Student@123  |
+### Teacher Portal (`/api/teachers/portal/*`)
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `GET` | `/api/teachers/portal/stats` | Teacher | Overview KPIs (classes, students, subjects, today's attendance) |
+| `GET` | `/api/teachers/portal/profile` | Teacher | Personal faculty credentials and class assignments |
+| `GET` | `/api/teachers/portal/classes` | Teacher | Classes assigned to the teacher with student counts |
+| `GET` | `/api/teachers/portal/students` | Teacher | Students enrolled in teacher's assigned classes |
+| `GET` | `/api/teachers/portal/attendance/sheet` | Teacher | Attendance sheet for an authorized class and date |
+| `POST` | `/api/teachers/portal/attendance` | Teacher | Mark attendance for an authorized class |
+| `GET` | `/api/teachers/portal/attendance/history` | Teacher | Attendance history scoped to teacher's classes |
+| `GET` | `/api/teachers/portal/exams` | Teacher | Scheduled exams for teacher's classes/subjects |
+| `GET` | `/api/teachers/portal/marks` | Teacher | Exam marks roster for grading |
+| `POST` | `/api/teachers/portal/marks` | Teacher | Submit or update student examination marks |
 
-> This is demo data only. Change these passwords before any real deployment.
+### Student Portal (`/api/students/portal/*`)
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `GET` | `/api/students/portal/stats` | Student | Summary metrics (attendance %, dues, grade average) |
+| `GET` | `/api/students/portal/profile` | Student | Personal enrollment record and contact details |
+| `GET` | `/api/students/portal/attendance` | Student | Full attendance log and cumulative attendance rate |
+| `GET` | `/api/students/portal/fees` | Student | Tuition fee status and installment payment history |
+| `GET` | `/api/students/portal/marks` | Student | Examination results, percentages, and letter grades |
+| `GET` | `/api/students/portal/exams` | Student | Upcoming examination schedule for enrolled class |
 
-## API Endpoints
+### Administrator Endpoints
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `GET` | `/api/dashboard/admin-stats` | Admin | Overall school statistics and financial totals |
+| `GET/POST/PUT/DELETE` | `/api/students` | Admin | Full student CRUD and search |
+| `GET/POST/PUT/DELETE` | `/api/teachers` | Admin | Full faculty CRUD and search |
+| `GET/POST/PUT/DELETE` | `/api/classes` | Admin | Class CRUD and class teacher assignment |
+| `GET/POST/PUT/DELETE` | `/api/subjects` | Admin | Subject CRUD and teacher assignment |
+| `GET/POST` | `/api/attendance` | Admin | School-wide attendance marking and history |
+| `GET/POST/DELETE` | `/api/fees` | Admin | Fee management and payment recording |
+| `GET/POST/PUT/DELETE` | `/api/exams` | Admin | Exam scheduling |
+| `GET/POST/PUT/DELETE` | `/api/marks` | Admin | Mark entry and result management |
+| `GET/POST/PUT/DELETE` | `/api/users` | Admin | User account management with profile linkage |
 
-| Method | Endpoint                       | Access           | Description                        |
-|--------|---------------------------------|------------------|-------------------------------------|
-| GET    | /api/health                     | Public           | Health check                        |
-| POST   | /api/auth/login                 | Public           | Log in, returns JWT + user info     |
-| GET    | /api/auth/me                    | Private          | Current user's profile              |
-| GET    | /api/dashboard/admin-stats      | Admin            | Dashboard summary stats             |
-| GET/POST/PUT/DELETE /api/students      | Admin/Teacher | Student CRUD                  |
-| GET/POST/PUT/DELETE /api/teachers      | Admin         | Teacher CRUD                  |
-| GET/POST/PUT/DELETE /api/classes       | Admin/Teacher | Class CRUD                    |
-| GET/POST/PUT/DELETE /api/subjects      | Admin/Teacher | Subject CRUD                  |
-| GET /api/attendance/sheet, POST /api/attendance, GET /api/attendance/history | Admin/Teacher | Attendance |
-| GET/POST/DELETE /api/fees, POST /api/fees/:id/payments | Admin | Fees |
-| GET/POST/PUT/DELETE /api/exams         | Admin/Teacher | Exam CRUD                     |
-| GET/POST/PUT/DELETE /api/marks         | Admin/Teacher | Marks entry, auto grade/%     |
-| GET/POST/PUT/DELETE /api/users         | Admin         | Manage login accounts         |
+---
 
-## Grading System
+## Production Build & Deployment
 
-| Percentage | Grade |
-|-----------|-------|
-| 90–100    | A+    |
-| 80–89     | A     |
-| 70–79     | B     |
-| 60–69     | C     |
-| 50–59     | D     |
-| Below 50  | F     |
-
-## Pushing to GitHub
-
-The `.gitignore` already excludes `node_modules/`, `.env`, and build output.
-
+### 1. Build Frontend
 ```bash
-git init
-git add .
-git commit -m "Initial commit: School Management System"
-git remote add origin <your-repo-url>
-git branch -M main
-git push -u origin main
+cd client
+npm run build
+```
+Generates optimized static assets in `client/dist`.
+
+### 2. Production Environment Variables
+Configure on your hosting platform (Render, Railway, Heroku, AWS, DigitalOcean):
+
+**Server (`.env`):**
+```ini
+PORT=5000
+NODE_ENV=production
+MONGO_URI=mongodb+srv://<username>:<password>@cluster0.mongodb.net/school_management?retryWrites=true&w=majority
+JWT_SECRET=your_strong_random_jwt_secret_key_here
+JWT_EXPIRES_IN=7d
+CLIENT_URL=https://your-frontend-domain.com
 ```
 
-Never commit your real `server/.env` — only `.env.example` should be tracked.
+**Client (`.env` / Environment Variables):**
+```ini
+VITE_API_URL=https://your-backend-api-domain.com/api
+```
 
-## Notes
+### 3. Production Start Commands
+- **Backend:** `npm start` (runs `node server.js`)
+- **Frontend:** Serve `dist/` directory with Nginx, Cloudflare Pages, Netlify, or Vercel.
 
-- Teacher and Student dashboards are currently simple placeholders. All Admin-side modules (Students, Teachers, Classes, Subjects, Attendance, Fees, Exams, Results, Reports, Users) are fully functional.
-- Class field on Student/Subject/Exam/Attendance references the actual `Class` collection (not free text), so create Classes first, then Subjects, before adding Students/Exams that depend on them.
+---
+
+## Grading Scheme
+
+| Percentage Range | Grade | Description |
+|---|---|---|
+| 90% – 100% | **A+** | Outstanding |
+| 80% – 89% | **A** | Excellent |
+| 70% – 79% | **B** | Very Good |
+| 60% – 69% | **C** | Good |
+| 50% – 59% | **D** | Pass |
+| Below 50% | **F** | Fail |

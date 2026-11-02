@@ -1,6 +1,7 @@
 const asyncHandler = require("../utils/asyncHandler");
 const User = require("../models/User");
 const generateToken = require("../utils/generateToken");
+const resolveUserProfile = require("../utils/resolveProfile");
 
 const login = asyncHandler(async (req, res) => {
   const { username, password } = req.body;
@@ -24,17 +25,41 @@ const login = asyncHandler(async (req, res) => {
     throw new Error("Invalid username or password");
   }
 
+  const profile = await resolveUserProfile(user);
+
   res.json({
     success: true,
     token: generateToken(user._id, user.role),
-    user: { id: user._id, username: user.username, name: user.name, email: user.email, role: user.role },
+    user: {
+      id: user._id,
+      username: user.username,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      teacher: user.teacher || null,
+      student: user.student || null,
+      isProfileLinked: Boolean(profile),
+      profileDetails: profile || null,
+    },
   });
 });
 
 const getMe = asyncHandler(async (req, res) => {
+  const profile = await resolveUserProfile(req.user);
+
   res.json({
     success: true,
-    user: { id: req.user._id, username: req.user.username, name: req.user.name, email: req.user.email, role: req.user.role },
+    user: {
+      id: req.user._id,
+      username: req.user.username,
+      name: req.user.name,
+      email: req.user.email,
+      role: req.user.role,
+      teacher: req.user.teacher || null,
+      student: req.user.student || null,
+      isProfileLinked: Boolean(profile),
+      profileDetails: profile || null,
+    },
   });
 });
 

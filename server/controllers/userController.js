@@ -1,21 +1,56 @@
 const asyncHandler = require("../utils/asyncHandler");
 const User = require("../models/User");
+const Teacher = require("../models/Teacher");
+const Student = require("../models/Student");
 
 const getUsers = asyncHandler(async (req, res) => {
-  const users = await User.find().sort({ createdAt: -1 });
+  const users = await User.find()
+    .populate("teacher", "name email subject")
+    .populate("student", "name rollNumber")
+    .sort({ createdAt: -1 });
   res.json({ success: true, count: users.length, users });
 });
 
 const createUser = asyncHandler(async (req, res) => {
-  const { username, password, name, email, role } = req.body;
+  const { username, password, name, email, role, teacher, student } = req.body;
   if (!username || !password || !name || !role) {
     res.status(400);
     throw new Error("username, password, name, and role are required");
   }
-  const user = await User.create({ username, password, name, email, role });
+
+  const payload = { username, password, name, email, role };
+
+  if (role === "teacher" && teacher) {
+    const teacherExists = await Teacher.findById(teacher);
+    if (!teacherExists) {
+      res.status(400);
+      throw new Error("Selected teacher does not exist");
+    }
+    payload.teacher = teacher;
+  }
+
+  if (role === "student" && student) {
+    const studentExists = await Student.findById(student);
+    if (!studentExists) {
+      res.status(400);
+      throw new Error("Selected student does not exist");
+    }
+    payload.student = student;
+  }
+
+  const user = await User.create(payload);
   res.status(201).json({
     success: true,
-    user: { id: user._id, username: user.username, name: user.name, email: user.email, role: user.role, isActive: user.isActive },
+    user: {
+      id: user._id,
+      username: user.username,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      teacher: user.teacher,
+      student: user.student,
+      isActive: user.isActive,
+    },
   });
 });
 
